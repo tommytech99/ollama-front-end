@@ -1,0 +1,65 @@
+<html>
+
+<h1> Ask a question of Mistral? </h1>
+<div id='my_div'>
+  <input type='text' id='qBox' size='100'></input><button type='button' onclick='question_me(document.getElementById("qBox").value);'>Query?</button>
+  <div id='response_div'></div>
+</div>
+<script>
+function question_me(question) {
+  fetch("http://localhost:11434/api/generate", {
+    method: "post",
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "model": "mistral",
+      "prompt": question
+    })
+  }).then((response) => response.body)
+    .then((rb) => {
+      const reader = rb.getReader();
+
+      return new ReadableStream({
+        start(controller) {
+          function push() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                console.log("done", done);
+                controller.close();
+                return;
+              }
+              controller.enqueue(value);
+              console.log(done, value);
+              push();
+            });
+          }
+
+          push();
+        },
+      });
+    })
+    .then((stream) =>
+      new Response(stream, { headers: { "Content-Type": "text/html" } }).text(),
+    )
+    .then((result) => {
+      let my_arr = result.split("\n")
+      let final_string = "Here:--> "
+      let i = 0
+      while (i < my_arr.length) {
+        if (my_arr[i].includes('done":false')) {
+          let my_dict = JSON.parse(my_arr[i])
+          final_string += ` ${my_dict["response"]}`
+        }
+        i++
+      }
+      setTimeout(function() { document.getElementById("response_div").innerText = final_string }, 500);
+    });
+}
+</script>
+
+
+
+
+</html>
