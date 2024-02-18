@@ -45,21 +45,20 @@ function question_me(question) {
     )
     .then((result) => {
       let my_arr = result.split("\n")
-      let final_string = "Here:--> "
+      let final_string = "Here:-->-\n"
       let i = 0
       while (i < my_arr.length) {
         if (my_arr[i].includes('done":false')) {
           let my_dict = JSON.parse(my_arr[i])
-          final_string += ` ${my_dict["response"]}`
+          final_string += `${my_dict["response"]}`
         }
         i++
       }
-      setTimeout(function() { document.getElementById("response_div").innerText = final_string }, 500);
+      const pre = document.createElement("pre");
+      pre.textContent = final_string;
+      document.getElementById("response_div").innerHTML = '';
+      setTimeout(function() { document.getElementById("response_div").appendChild(pre) }, 500);
     });
 }
 </script>
-
-
-
-
 </html>
